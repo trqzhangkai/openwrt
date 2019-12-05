@@ -1,16 +1,24 @@
-name: CI
+name: build-openwrt
 
 on: [push]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@master
     - name: Run a one-line script
-      run: sudo apt-get update
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+        sudo apt-get -y autoremove --purge
+        sudo apt-get clean
+    - name: update and install feeds
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
     - name: Setup Debug Session
       uses: csexton/debugger-action@master
     - name: Run a multi-line script
