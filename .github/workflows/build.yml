@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
-    - name: Run a one-line script
+    - name: install build apps
       run: |
         sudo apt-get update
         sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
@@ -21,7 +21,27 @@ jobs:
         ./scripts/feeds install -a
     - name: Setup Debug Session
       uses: csexton/debugger-action@master
-    - name: Run a multi-line script
+      
+    - name: Download package
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+        cd openwrt && make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: Build
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread build."
+        make -j$(nproc) V=s
+
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      with:
+        name: OpenWrt packages
+        path: openwrt/bin/packages
+
+    - name : Upload targets
+      uses: actions/upload-artifact@master
+      with:
+        name: OpenWrt firmware
+        path: openwrt/bin/targets
